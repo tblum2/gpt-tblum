@@ -21,9 +21,9 @@ then
 
     CXX=$(grid-config --cxx)
     CXXLD=$(grid-config --cxxld)
-    CXXFLAGS="$(grid-config --cxxflags) ${CXXFLAGS_PYTHON}"
-    LDFLAGS=$(grid-config --ldflags)
-    LIBS=$(grid-config --libs)
+    CXXFLAGS="-I/Users/thomasblum/Dropbox/Grid/build -I/opt/homebrew/include -I/opt/homebrew/Cellar/openssl@1.1/1.1.1l/include $(grid-config --cxxflags) ${CXXFLAGS_PYTHON} -I/Users/thomasblum/Dropbox/Grid -I/Users/thomasblum/Dropbox/Grid/Eigen"
+    LDFLAGS="$(grid-config --ldflags) $(python3-config --ldflags) -lpython3.9 -L/opt/homebrew/lib -lomp -L/Users/thomasblum/Dropbox/Grid/build/Grid"
+    LIBS="$(grid-config --libs) $(python3-config --libs)"
     BUILD="build"
 
 else

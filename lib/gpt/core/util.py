@@ -28,9 +28,9 @@ def is_num(x):
 
 # convert to number type
 def to_num(x):
-    if isinstance(x, (np.complex128, np.complex64)):
+    if isinstance(x, (np.cdouble, np.csingle)):
         return complex(x)
-    elif isinstance(x, (np.float64, np.float128)):
+    elif isinstance(x, (np.double, np.longdouble)):
         return float(x)
     elif isinstance(x, (np.int32, np.int64)):
         return int(x)

@@ -19,6 +19,7 @@
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #
 import gpt as g
+import numpy as np
 
 default_rectangle_cache = {}
 
@@ -153,7 +154,6 @@ def field_strength(U, mu, nu):
     F @= 0.125 * (F - g.adj(F))
     return F
 
-
 def energy_density(U, field=False):
     Nd = len(U)
     accumulator = accumulator_field if field else accumulator_average
@@ -163,3 +163,65 @@ def energy_density(U, field=False):
             Fmunu = field_strength(U, mu, nu)
             res += g.trace(Fmunu * Fmunu)
     return res.scaled_real(-1.0)
+
+def topological_charge(U, field=False):
+    Nd = len(U)
+    accumulator = accumulator_field if field else accumulator_average
+    res = accumulator(U[0])
+    Bx = field_strength(U, 1, 2)
+    By = field_strength(U, 2, 0)
+    Bz = field_strength(U, 0, 1)
+    Ex = field_strength(U, 3, 0)
+    Ey = field_strength(U, 3, 1)
+    Ez = field_strength(U, 3, 2)
+    coeff = 8.0/(32.0*np.pi**2)
+    coeff *= U[0].grid.gsites
+    res += g.trace(Bx*Ex+By*Ey+Bz*Ez)
+    return res.scaled_real(coeff)
+
+# O(a^4) improved def. of Q. See arXiv:hep-lat/9701012.
+def topological_charge_5LI(U, field=False):
+    Nd = len(U)
+    accumulator = accumulator_field if field else accumulator_average
+    res = accumulator(U[0])
+    c5=1/20
+    c1 = (19-55 * c5)/9.
+    c2 = (1-64 * c5)/9.
+    c3 = (-64+640 * c5)/45.
+    c4 = 1/5.-2 * c5
+
+    # Bx
+    mu = 1
+    nu = 2
+    A = g.qcd.gauge.rectangle(U, [[(mu,1,nu,1),(nu,-1,mu,1),(mu,-1,nu,-1),(nu,1,mu,-1)]], real=False, trace=False, field=True)
+    Bx=g(A-g.adj(A))
+    # By
+    mu = 2
+    nu = 0
+    A = g.qcd.gauge.rectangle(U, [[(mu,1,nu,1),(nu,-1,mu,1),(mu,-1,nu,-1),(nu,1,mu,-1)]], real=False, trace=False, field=True)
+    By=g(A-g.adj(A))
+    # Bz
+    mu = 0
+    nu = 1
+    A = g.qcd.gauge.rectangle(U, [[(mu,1,nu,1),(nu,-1,mu,1),(mu,-1,nu,-1),(nu,1,mu,-1)]], real=False, trace=False, field=True)
+    Bz=g(A-g.adj(A))
+    # Ex
+    mu = 3
+    nu = 0
+    A = g.qcd.gauge.rectangle(U, [[(mu,1,nu,1),(nu,-1,mu,1),(mu,-1,nu,-1),(nu,1,mu,-1)]], real=False, trace=False, field=True)
+    Ex=g(A-g.adj(A))
+    # Ey
+    mu = 3
+    nu = 1
+    A = g.qcd.gauge.rectangle(U, [[(mu,1,nu,1),(nu,-1,mu,1),(mu,-1,nu,-1),(nu,1,mu,-1)]], real=False, trace=False, field=True)
+    Ey=g(A-g.adj(A))
+    # Ez
+    mu = 3
+    nu = 2
+    A = g.qcd.gauge.rectangle(U, [[(mu,1,nu,1),(nu,-1,mu,1),(mu,-1,nu,-1),(nu,1,mu,-1)]], real=False, trace=False, field=True)
+    Ez=g(A-g.adj(A))
+
+    coeff = 8.0/(32.0*np.pi**2)
+    coeff *= U[0].grid.gsites
+    res += g.trace(Bx*Ex+By*Ey+Bz*Ez)
+    return res.scaled_real(coeff)
